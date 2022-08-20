@@ -1,5 +1,7 @@
 import { SerialPort} from "serialport";
 import { Utils } from "./utils";
+import "dotenv/config";
+import {clearTimeout} from 'timers';
 
 //List Devices
 // const devices = await SerialPort.list();
@@ -9,8 +11,8 @@ let text = "Lorem Ipsum is simply dummy text of the printing and typesetting ind
 // text = "HelloWorld";
 //Connecting Device
 const port = new SerialPort({
-    baudRate: 9600,
-    path: "/dev/tty.usbserial-DN06BD7Q",
+    baudRate: +process.env.baudrate!,
+    path: process.env.path!,
     parity: 'none'
 }, (err) => {
     if (err)
@@ -25,11 +27,12 @@ let packets: number[] = []
 let errors = 0;
 let correct = 0;
 let lastPacket: Buffer;
+let timeout: any;
 
 async function startLoopbackTest() {
 
     port.on('data', (data: Buffer) => {
-        console.log("RAW:", data);
+        // console.log("RAW:", data);
 
         if (packets.length == 0) {
             //Form a new packet
@@ -78,32 +81,46 @@ async function startLoopbackTest() {
         }
 
         lastPacket = data;
-
     });
 
+    sendPacket();
+}
+
+async function sendPacket(){
     const buffer: number[] = [];
     buffer.push(0xAA);
     buffer.push(0x26);
 
-    buffer.push(...Buffer.from("HelloWorld"));
+    buffer.push(...Buffer.from(text));
 
     buffer.push(0xAA);
     buffer.push(0xD9);
 
-    write(buffer);//
+    write(buffer);
+
+    timeout = setTimeout(()=>{
+        console.log("Timeout Packet");
+        errors++;
+        sendPacket();
+    } , 200);
 }
 
 async function write(data: number[]) {
-    console.log("Sent:", Utils.byteToHexString(data));
+    // console.log("Sent:", Utils.byteToHexString(data));
     port.write(data);
 };
 
 async function parseData(data: number[]) {
+    clearTimeout(timeout);
+
     const buffer = Buffer.from(data.slice(2, data.length - 2));
-    console.log("Received:", buffer);
-    console.log("Received:", buffer.toString('utf-8'));
+    // console.log("Received:", buffer);
+    // console.log("Received:", buffer.toString('utf-8'));
     if (buffer.toString('utf-8') == text) {
         correct++;
     } else errors++;
-    console.log({ errors, correct })
+    console.log({ errors, correct });
+
+    sendPacket();
+
 }
