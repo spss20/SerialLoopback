@@ -35,24 +35,24 @@ async function startLoopbackTest() {
         if (packets.length == 0) {
             //Form a new packet
 
-            if (data[0] == 0x7B && data[1] == 0x7D) {
+            if (data[0] == 0xAA && data[1] == 0x26) {
                 //SOF Packet Found
                 packets.push(...data);
 
                 //Checking for EOF
-                if (data[data.length - 2] == 0x5B && data[data.length - 1] == 0x5D) {
+                if (data[data.length - 2] == 0xAA && data[data.length - 1] == 0xD9) {
                     //EOF Found
                     parseData(packets)
                     packets = [];
                 }
             } else {
-                if (data[0] == 0x7D && lastPacket[0] == 0x7B) {
+                if (data[0] == 0x26 && lastPacket[0] == 0xAA) {
                     console.log("SOF found in last packet");
                     packets.push(...lastPacket);
                     packets.push(...data);
 
                     //Checking for EOF
-                    if (data[data.length - 2] == 0x5B && data[data.length - 1] == 0x5D) {
+                    if (data[data.length - 2] == 0xAA && data[data.length - 1] == 0xD9) {
                         //EOF Found
                         parseData(packets)
                         packets = [];
@@ -67,11 +67,11 @@ async function startLoopbackTest() {
             //Append existing packet
             packets.push(...data);
 
-            if (data[data.length - 2] == 0x5B && data[data.length - 1] == 0x5D) {
+            if (data[data.length - 2] == 0xAA && data[data.length - 1] == 0xD9) {
                 //EOF Packet Found
                 parseData(packets);
                 packets = [];
-            } else if (data[data.length - 1] == 0x5D && lastPacket[lastPacket.length - 1] == 0x5B) {
+            } else if (data[data.length - 1] == 0xD9 && lastPacket[lastPacket.length - 1] == 0xAA) {
                 parseData(packets);
                 packets = [];
             }

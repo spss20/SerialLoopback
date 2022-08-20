@@ -11,5 +11,8 @@
   "license": "ISC",
   "dependencies": {
     "serialport": "^10.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.7.8"
   }
 }
