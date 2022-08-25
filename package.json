@@ -12,5 +12,8 @@
   "dependencies": {
     "dotenv": "^16.0.1",
     "serialport": "^10.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.7.8"
   }
 }
